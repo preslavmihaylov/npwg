@@ -1,0 +1,37 @@
+# Define a `test_server` listening on port 2020
+[apps.http.servers.test_server]
+listen = [
+    'localhost:2020',
+]
+
+# Define that all requests for `backend/*` will get routed 
+# to the upstream server listening on port 8080
+[[apps.http.servers.test_server.routes]]
+[[apps.http.servers.test_server.routes.match]]
+path = [
+    '/backend',
+    '/backend/*',
+]
+[[apps.http.servers.test_server.routes.handle]]
+handler = 'reverse_proxy'
+[[apps.http.servers.test_server.routes.handle.upstreams]]
+dial = 'localhost:8080'
+
+# All other routes will be handled by a file server, serving files in the `./files` directory.
+# Also, include the 'restrict_prefix' module & restrict access to files starting with '.'.
+[[apps.http.servers.test_server.routes]]
+[[apps.http.servers.test_server.routes.handle]]
+handler = 'restrict_prefix'
+prefix = '.'
+[[apps.http.servers.test_server.routes.handle]]
+handler = 'file_server'
+root = './files'
+index_names = [
+    'index.html',
+]
+
+# Add automatic HTTPS for `example.com`
+# [[apps.http.servers.test_server.routes.match]]
+# host = [
+#  'example.com',
+# ]
